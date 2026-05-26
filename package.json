@@ -1,11 +1,98 @@
 {
   "name": "@shapeshift-labs/frontier-game",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Reserved placeholder for Frontier game-facing multiplayer state APIs.",
+  "version": "0.1.0",
+  "description": "Game-facing entity, component, player, replication, and command helpers for Frontier realtime.",
+  "type": "module",
+  "sideEffects": false,
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/siliconjungle/-shapeshift-labs-frontier-game.git"
   },
-  "license": "MIT"
+  "homepage": "https://github.com/siliconjungle/-shapeshift-labs-frontier-game#readme",
+  "bugs": {
+    "url": "https://github.com/siliconjungle/-shapeshift-labs-frontier-game/issues"
+  },
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./commands": {
+      "types": "./dist/commands.d.ts",
+      "import": "./dist/commands.js",
+      "default": "./dist/commands.js"
+    },
+    "./replication": {
+      "types": "./dist/replication.d.ts",
+      "import": "./dist/replication.js",
+      "default": "./dist/replication.js"
+    },
+    "./room": {
+      "types": "./dist/room.d.ts",
+      "import": "./dist/room.js",
+      "default": "./dist/room.js"
+    },
+    "./world": {
+      "types": "./dist/world.d.ts",
+      "import": "./dist/world.js",
+      "default": "./dist/world.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "commands": [
+        "./dist/commands.d.ts"
+      ],
+      "replication": [
+        "./dist/replication.d.ts"
+      ],
+      "room": [
+        "./dist/room.d.ts"
+      ],
+      "world": [
+        "./dist/world.d.ts"
+      ],
+      "*": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "benchmarks/package-bench.mjs"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@shapeshift-labs/frontier-realtime": "^0.1.0"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "npm run build && npm run typecheck && node test/smoke.mjs && node test/fuzz.mjs --cases 300 && node test/package-boundaries.mjs",
+    "prepack": "npm run test",
+    "typecheck": "node typecheck.mjs",
+    "fuzz": "npm run build && node test/fuzz.mjs",
+    "bench": "npm run build && node benchmarks/package-bench.mjs",
+    "pack:dry": "npm pack --dry-run"
+  },
+  "keywords": [
+    "frontier",
+    "game",
+    "realtime",
+    "multiplayer",
+    "entity",
+    "component",
+    "replication"
+  ],
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  }
 }
