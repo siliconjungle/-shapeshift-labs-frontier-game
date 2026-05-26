@@ -26,6 +26,26 @@
       "import": "./dist/commands.js",
       "default": "./dist/commands.js"
     },
+    "./ecs": {
+      "types": "./dist/ecs.d.ts",
+      "import": "./dist/ecs.js",
+      "default": "./dist/ecs.js"
+    },
+    "./lag": {
+      "types": "./dist/lag.d.ts",
+      "import": "./dist/lag.js",
+      "default": "./dist/lag.js"
+    },
+    "./physics": {
+      "types": "./dist/physics.d.ts",
+      "import": "./dist/physics.js",
+      "default": "./dist/physics.js"
+    },
+    "./query": {
+      "types": "./dist/query.d.ts",
+      "import": "./dist/query.js",
+      "default": "./dist/query.js"
+    },
     "./replication": {
       "types": "./dist/replication.d.ts",
       "import": "./dist/replication.js",
@@ -41,12 +61,29 @@
       "import": "./dist/world.js",
       "default": "./dist/world.js"
     },
+    "./spatial": {
+      "types": "./dist/spatial.d.ts",
+      "import": "./dist/spatial.js",
+      "default": "./dist/spatial.js"
+    },
     "./package.json": "./package.json"
   },
   "typesVersions": {
     "*": {
       "commands": [
         "./dist/commands.d.ts"
+      ],
+      "ecs": [
+        "./dist/ecs.d.ts"
+      ],
+      "lag": [
+        "./dist/lag.d.ts"
+      ],
+      "physics": [
+        "./dist/physics.d.ts"
+      ],
+      "query": [
+        "./dist/query.d.ts"
       ],
       "replication": [
         "./dist/replication.d.ts"
@@ -56,6 +93,9 @@
       ],
       "world": [
         "./dist/world.d.ts"
+      ],
+      "spatial": [
+        "./dist/spatial.d.ts"
       ],
       "*": [
         "./dist/index.d.ts"
@@ -73,6 +113,14 @@
   },
   "dependencies": {
     "@shapeshift-labs/frontier-realtime": "^0.1.0"
+  },
+  "peerDependencies": {
+    "@shapeshift-labs/frontier-query": ">=0.1.2"
+  },
+  "peerDependenciesMeta": {
+    "@shapeshift-labs/frontier-query": {
+      "optional": true
+    }
   },
   "scripts": {
     "build": "node build.mjs",

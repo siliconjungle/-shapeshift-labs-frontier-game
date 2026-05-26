@@ -5,10 +5,15 @@ import { fileURLToPath } from 'node:url';
 
 const packageDir = path.dirname(fileURLToPath(import.meta.url));
 const realtimeDir = path.join(path.dirname(packageDir), 'frontier-realtime');
+const queryDir = path.join(path.dirname(packageDir), 'frontier-query-standalone');
 
 linkLocalPackage('@shapeshift-labs/frontier-realtime', realtimeDir);
+linkLocalPackage('@shapeshift-labs/frontier-query', queryDir);
 if (fs.existsSync(path.join(realtimeDir, 'package.json'))) {
   execFileSync('npm', ['--prefix', realtimeDir, 'run', 'build'], { stdio: 'inherit' });
+}
+if (fs.existsSync(path.join(queryDir, 'package.json'))) {
+  execFileSync('npm', ['--prefix', queryDir, 'run', 'build'], { stdio: 'inherit' });
 }
 
 fs.rmSync(path.join(packageDir, 'dist'), { recursive: true, force: true });
@@ -34,7 +39,8 @@ function resolveTsc() {
   const command = process.platform === 'win32' ? 'tsc.cmd' : 'tsc';
   const candidates = [
     path.join(packageDir, 'node_modules', '.bin', command),
-    path.join(realtimeDir, 'node_modules', '.bin', command)
+    path.join(realtimeDir, 'node_modules', '.bin', command),
+    path.join(queryDir, 'node_modules', '.bin', command)
   ];
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) return candidate;

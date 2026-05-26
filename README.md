@@ -113,6 +113,16 @@ const playerView = createReplicationView(world, {
 });
 ```
 
+### Spatial, Physics, Lag, and ECS Helpers
+
+The base package stays a JSON-shaped game vocabulary, while heavier game-engine helpers live behind subpaths:
+
+- `./spatial`: grid-backed radius/bounds queries and spatial replication views for interest management.
+- `./physics`: deterministic 2D position/velocity integration helpers.
+- `./lag`: bounded snapshot buffers and entity rewind queries for lag-compensated checks.
+- `./ecs`: component/owner/tag indexes over the normal `GameWorld` shape.
+- `./query`: optional `frontier-query` selectors for component predicates.
+
 ### Room Model
 
 `createGameRoomModel()` returns structural `initialState`, `applyCommand`, `validateCommand`, and `selectSnapshot` functions that can be passed to `@shapeshift-labs/frontier-realtime-server`.
@@ -134,8 +144,13 @@ const room = createRealtimeRoom({
 
 ```ts
 import { createGameCommandSource } from '@shapeshift-labs/frontier-game/commands';
+import { createGameEcsIndex } from '@shapeshift-labs/frontier-game/ecs';
+import { createGameLagBuffer } from '@shapeshift-labs/frontier-game/lag';
+import { stepGamePhysics } from '@shapeshift-labs/frontier-game/physics';
+import { selectGameEntitiesByQuery } from '@shapeshift-labs/frontier-game/query';
 import { createReplicationView } from '@shapeshift-labs/frontier-game/replication';
 import { createGameRoomModel } from '@shapeshift-labs/frontier-game/room';
+import { createSpatialIndex } from '@shapeshift-labs/frontier-game/spatial';
 import { createGameWorld } from '@shapeshift-labs/frontier-game/world';
 ```
 
@@ -147,8 +162,9 @@ This package intentionally owns only game-facing state vocabulary:
 - Game command helpers over Frontier realtime commands.
 - Basic replication filtering.
 - Room-model reducer/validator/snapshot helpers.
+- Optional spatial, physics, lag-compensation, ECS-index, and query-selector helpers behind subpaths.
 
-It does not own rendering, physics, editor bindings, durable persistence, WebSocket transport, authoritative server loops, or anti-cheat policy beyond command validation hooks.
+It does not own rendering, a full physics engine, editor bindings, durable persistence, WebSocket transport, authoritative server loops, or anti-cheat policy beyond command validation hooks.
 
 ## TypeScript
 
@@ -177,10 +193,10 @@ Latest local package benchmark on Node v26.1.0, darwin arm64, 9 rounds:
 
 | Fixture | Median | p95 |
 | --- | ---: | ---: |
-| Spawn 128 entities | 204.68 us | 206.66 us |
-| Apply 128 component commands | 17.03 ms | 17.60 ms |
-| Replication view, 1k entities | 299.46 us | 308.32 us |
-| Room model apply/select | 2.41 ms | 2.52 ms |
+| Spawn 128 entities | 218.39 us | 226.76 us |
+| Apply 128 component commands | 20.18 ms | 24.83 ms |
+| Replication view, 1k entities | 364.43 us | 374.59 us |
+| Room model apply/select | 2.82 ms | 2.90 ms |
 
 These are Frontier-only package measurements, not competitor comparisons.
 

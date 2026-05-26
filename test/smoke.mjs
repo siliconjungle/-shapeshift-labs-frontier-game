@@ -14,8 +14,13 @@ import {
   validateGameCommand
 } from '../dist/index.js';
 import { createGameCommandSource as createGameCommandSourceSubpath } from '../dist/commands.js';
+import { createGameEcsIndex } from '../dist/ecs.js';
+import { createGameLagBuffer } from '../dist/lag.js';
+import { stepGamePhysics } from '../dist/physics.js';
+import { selectGameEntitiesByQuery } from '../dist/query.js';
 import { createReplicationView as createReplicationViewSubpath } from '../dist/replication.js';
 import { createGameRoomModel as createGameRoomModelSubpath } from '../dist/room.js';
+import { createSpatialIndex, createSpatialReplicationView } from '../dist/spatial.js';
 import { createGameWorld as createGameWorldSubpath } from '../dist/world.js';
 
 assert.strictEqual(createGameCommandSourceSubpath, createGameCommandSource);
@@ -82,6 +87,53 @@ assert.strictEqual(createGameWorldSubpath, createGameWorld);
   assert.strictEqual(world.tick, 7);
   assert.strictEqual(world.timeMs, 100);
   assert.ok(model.selectSnapshot(world, { clientId: 'alice' }).entities['player:alice']);
+}
+
+{
+  let world = createGameWorld({
+    players: { alice: { id: 'alice' }, bob: { id: 'bob' } }
+  });
+  world = spawnEntity(world, {
+    id: 'player:alice',
+    ownerId: 'alice',
+    tags: ['player'],
+    components: {
+      position: { x: 0, y: 0 },
+      velocity: { x: 10, y: 0 },
+      visibility: { public: true },
+      team: 'red'
+    }
+  });
+  world = spawnEntity(world, {
+    id: 'far',
+    tags: ['npc'],
+    components: { position: { x: 1000, y: 0 }, visibility: { public: true }, team: 'blue' }
+  });
+
+  const ecs = createGameEcsIndex(world);
+  assert.deepStrictEqual(ecs.withComponents('position').map((entity) => entity.id).sort(), ['far', 'player:alice']);
+  assert.deepStrictEqual(ecs.ownedBy('alice').map((entity) => entity.id), ['player:alice']);
+
+  const spatial = createSpatialIndex(world, { cellSize: 64 });
+  assert.deepStrictEqual(spatial.queryRadius({ x: 0, y: 0 }, 20).map((entity) => entity.id), ['player:alice']);
+  assert.deepStrictEqual(Object.keys(createSpatialReplicationView(world, {
+    playerId: 'bob',
+    center: { x: 0, y: 0 },
+    radius: 20
+  }).entities), ['player:alice']);
+
+  const stepped = stepGamePhysics(world, { dtMs: 100 });
+  assert.strictEqual(getComponent(stepped, 'player:alice', 'position').x, 1);
+
+  const lag = createGameLagBuffer();
+  lag.push({ tick: 1, state: world });
+  lag.push({ tick: 2, state: stepped });
+  assert.strictEqual(lag.entityAt('player:alice', 1).components.position.x, 0);
+
+  const queried = selectGameEntitiesByQuery(world, {
+    conditions: [{ field: 'team', op: 'eq', value: 'red' }]
+  });
+  assert.deepStrictEqual(queried.map((entity) => entity.id), ['player:alice']);
 }
 
 console.log('frontier game smoke passed');
