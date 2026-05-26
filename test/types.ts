@@ -14,6 +14,7 @@ import { stepGamePhysics } from '../dist/physics.js';
 import { selectGameEntitiesByQuery } from '../dist/query.js';
 import { createReplicationView as createReplicationViewSubpath } from '../dist/replication.js';
 import { createGameRoomModel as createGameRoomModelSubpath } from '../dist/room.js';
+import { createGameRollbackRunner, type GameRollbackInput } from '../dist/rollback.js';
 import { createSpatialIndex } from '../dist/spatial.js';
 import { createGameWorld as createGameWorldSubpath } from '../dist/world.js';
 
@@ -41,3 +42,13 @@ createSpatialIndex(next).queryRadius({ x: 0, y: 0 }, 10);
 stepGamePhysics(next, { dtMs: 16 });
 createGameLagBuffer().push({ tick: 1, state: next });
 selectGameEntitiesByQuery(next, { conditions: [{ field: 'position.x', op: 'gte', value: 0 }] });
+
+const rollbackInput: GameRollbackInput<{ dx: number }> = { clientId: 'player:1', frame: 1, payload: { dx: 1 } };
+const rollback = createGameRollbackRunner({
+  initialWorld: next,
+  players: ['player:1'],
+  predictInput: () => ({ dx: 0 }),
+  stepWorld: (current) => current
+});
+rollback.addRemoteInput(rollbackInput);
+rollback.advance();

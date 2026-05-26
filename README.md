@@ -122,6 +122,7 @@ The base package stays a JSON-shaped game vocabulary, while heavier game-engine 
 - `./lag`: bounded snapshot buffers and entity rewind queries for lag-compensated checks.
 - `./ecs`: component/owner/tag indexes over the normal `GameWorld` shape.
 - `./query`: optional `frontier-query` selectors for component predicates.
+- `./rollback`: deterministic fixed-frame game-world rollback runner over `frontier-realtime/rollback`.
 
 ### Room Model
 
@@ -150,6 +151,7 @@ import { stepGamePhysics } from '@shapeshift-labs/frontier-game/physics';
 import { selectGameEntitiesByQuery } from '@shapeshift-labs/frontier-game/query';
 import { createReplicationView } from '@shapeshift-labs/frontier-game/replication';
 import { createGameRoomModel } from '@shapeshift-labs/frontier-game/room';
+import { createGameRollbackRunner } from '@shapeshift-labs/frontier-game/rollback';
 import { createSpatialIndex } from '@shapeshift-labs/frontier-game/spatial';
 import { createGameWorld } from '@shapeshift-labs/frontier-game/world';
 ```
@@ -163,6 +165,7 @@ This package intentionally owns only game-facing state vocabulary:
 - Basic replication filtering.
 - Room-model reducer/validator/snapshot helpers.
 - Optional spatial, physics, lag-compensation, ECS-index, and query-selector helpers behind subpaths.
+- Optional rollback runner for deterministic fixed-frame resimulation of game worlds.
 
 It does not own rendering, a full physics engine, editor bindings, durable persistence, WebSocket transport, authoritative server loops, or anti-cheat policy beyond command validation hooks.
 
@@ -193,10 +196,10 @@ Latest local package benchmark on Node v26.1.0, darwin arm64, 9 rounds:
 
 | Fixture | Median | p95 |
 | --- | ---: | ---: |
-| Spawn 128 entities | 218.39 us | 226.76 us |
-| Apply 128 component commands | 20.18 ms | 24.83 ms |
-| Replication view, 1k entities | 364.43 us | 374.59 us |
-| Room model apply/select | 2.82 ms | 2.90 ms |
+| Spawn 128 entities | 219.34 us | 249.58 us |
+| Apply 128 component commands | 17.68 ms | 18.40 ms |
+| Replication view, 1k entities | 309.56 us | 316.86 us |
+| Room model apply/select | 2.49 ms | 2.71 ms |
 
 These are Frontier-only package measurements, not competitor comparisons.
 

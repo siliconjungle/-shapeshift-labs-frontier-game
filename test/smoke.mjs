@@ -20,6 +20,7 @@ import { stepGamePhysics } from '../dist/physics.js';
 import { selectGameEntitiesByQuery } from '../dist/query.js';
 import { createReplicationView as createReplicationViewSubpath } from '../dist/replication.js';
 import { createGameRoomModel as createGameRoomModelSubpath } from '../dist/room.js';
+import { createGameRollbackPhysicsSystem, createGameRollbackRunner } from '../dist/rollback.js';
 import { createSpatialIndex, createSpatialReplicationView } from '../dist/spatial.js';
 import { createGameWorld as createGameWorldSubpath } from '../dist/world.js';
 
@@ -134,6 +135,50 @@ assert.strictEqual(createGameWorldSubpath, createGameWorld);
     conditions: [{ field: 'team', op: 'eq', value: 'red' }]
   });
   assert.deepStrictEqual(queried.map((entity) => entity.id), ['player:alice']);
+}
+
+{
+  let world = createGameWorld({
+    players: { local: { id: 'local' }, remote: { id: 'remote' } }
+  });
+  world = spawnEntity(world, {
+    id: 'player:local',
+    ownerId: 'local',
+    components: {
+      position: { x: 0, y: 0 },
+      velocity: { x: 10, y: 0 }
+    }
+  });
+  const runner = createGameRollbackRunner({
+    initialWorld: world,
+    players: ['local', 'remote'],
+    checkpointInterval: 1,
+    predictInput: (_clientId, _frame, previous) => previous?.payload ?? { dx: 0 },
+    stepWorld(current, inputs, context) {
+      const position = getComponent(current, 'player:local', 'position');
+      const dx = inputs.inputs.reduce((sum, input) => sum + input.payload.dx, 0);
+      context.emit({ frame: inputs.frame, x: position.x + dx });
+      return setComponent(current, 'player:local', 'position', { x: position.x + dx, y: position.y });
+    },
+    systems: [createGameRollbackPhysicsSystem({ dtMs: 100 })],
+    checksum: (current) => getComponent(current, 'player:local', 'position').x
+  });
+  const local = runner.createInputSource({ clientId: 'local' });
+  const remote = runner.createInputSource({ clientId: 'remote' });
+  runner.addRemoteInput(local.create({ dx: 1 }, 1));
+  runner.addRemoteInput(remote.create({ dx: 0 }, 1));
+  assert.strictEqual(runner.advance()[0].effects.length, 1);
+  assert.strictEqual(getComponent(runner.world, 'player:local', 'position').x, 2);
+
+  runner.addRemoteInput(local.create({ dx: 1 }, 2));
+  runner.advance();
+  assert.strictEqual(getComponent(runner.world, 'player:local', 'position').x, 4);
+  const corrected = runner.addRemoteInput({ clientId: 'remote', frame: 2, payload: { dx: 5 } });
+  assert.strictEqual(corrected.corrected, true);
+  assert.strictEqual(corrected.replayed, 1);
+  assert.strictEqual(getComponent(runner.world, 'player:local', 'position').x, 9);
+  assert.deepStrictEqual(runner.predictedFrames, []);
+  assert.strictEqual(runner.confirmedFrame, 2);
 }
 
 console.log('frontier game smoke passed');

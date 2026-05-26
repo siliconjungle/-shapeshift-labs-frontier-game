@@ -56,6 +56,11 @@
       "import": "./dist/room.js",
       "default": "./dist/room.js"
     },
+    "./rollback": {
+      "types": "./dist/rollback.d.ts",
+      "import": "./dist/rollback.js",
+      "default": "./dist/rollback.js"
+    },
     "./world": {
       "types": "./dist/world.d.ts",
       "import": "./dist/world.js",
@@ -90,6 +95,9 @@
       ],
       "room": [
         "./dist/room.d.ts"
+      ],
+      "rollback": [
+        "./dist/rollback.d.ts"
       ],
       "world": [
         "./dist/world.d.ts"

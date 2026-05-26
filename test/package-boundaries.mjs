@@ -15,6 +15,7 @@ const expectedExports = [
   './query',
   './replication',
   './room',
+  './rollback',
   './spatial',
   './world',
   './package.json'
