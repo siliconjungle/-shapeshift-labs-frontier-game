@@ -120,10 +120,10 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@shapeshift-labs/frontier-realtime": "^0.1.0"
+    "@shapeshift-labs/frontier-realtime": "0.1.0"
   },
   "peerDependencies": {
-    "@shapeshift-labs/frontier-query": ">=0.1.2"
+    "@shapeshift-labs/frontier-query": "0.1.2"
   },
   "peerDependenciesMeta": {
     "@shapeshift-labs/frontier-query": {
